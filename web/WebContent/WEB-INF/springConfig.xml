@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:jee="http://www.springframework.org/schema/jee"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:jpa="http://www.springframework.org/schema/data/jpa"
+	xsi:schemaLocation="http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee-4.3.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd
+		http://www.springframework.org/schema/data/jpa http://www.springframework.org/schema/data/jpa/spring-jpa-1.11.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.3.xsd">
+
+	<context:annotation-config/>
+	<jee:jndi-lookup jndi-name="refproyecto" id="dataServer"/>
+	<context:component-scan base-package="service"/>
+	<jpa:repositories base-package="dao" transaction-manager-ref="txManager"
+										entity-manager-factory-ref="factory"/>
+	<!-- configuración integración Spring-JPA-Hibernate -->
+	<!-- creación adaptador JPA-Hibernate -->
+	<bean id="adapter"
+		class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter">
+		<property name="databasePlatform"
+			value="org.hibernate.dialect.MySQLDialect">
+		</property>
+	</bean>
+	<!-- <jee:jndi-lookup id="validatorFactory"
+	jndi-name="java:comp/ValidatorFactory" resource-ref="false" />
+	<bean
+		class="org.springframework.validation.beanvalidation.MethodValidationPostProcessor">
+		<property name="validatorFactory" ref="validatorFactory" />
+	</bean>  -->
+	<bean id="DNIValidator" class="model.validator.DNIValidator" />
+	<bean id="IBANValidator" class="model.validator.IBANValidator" />
+	<!-- configuración JPA -->
+	<bean id="factory"
+		class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
+		<property name="persistenceUnitName" value="sistema"></property>
+		<property name="dataSource" ref="dataServer"></property>
+		<property name="jpaVendorAdapter" ref="adapter"></property>
+		<property name="packagesToScan" value="model"></property>
+		<property name="jpaProperties">
+			<props>
+				<prop key="hibernate.enable_lazy_load_no_trans">true</prop>
+				<prop key="javax.persistence.validation.mode">none</prop>
+			</props>
+		</property>
+	</bean>	
+	<!-- transaccionalidad -->
+	
+	<bean id="txManager"
+		class="org.springframework.orm.jpa.JpaTransactionManager">
+		<property name="entityManagerFactory" ref="factory"></property>
+	</bean>
+	<tx:annotation-driven transaction-manager="txManager"/>	
+</beans>

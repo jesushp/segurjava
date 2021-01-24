@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:security="http://www.springframework.org/schema/security"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd">
+	<security:http pattern="/css/**" security="none"/>
+	<security:http pattern="/img/**" security="none"/>
+	<security:http pattern="/js/**" security="none"/>
+	<security:http use-expressions="true">
+		<!--  Protección de recursos /menu.jsp , isAnonymous() hasRole('ROLE_ADMIN') hasAnyRole('ROLE_ADMIN','ROLE_USER')
+		<http pattern="/static/**" secured="false" /> -->
+		<!-- <security:intercept-url pattern="/error*.jsp" access="permitAll"/> -->
+		<security:intercept-url pattern="/login.**" access="permitAll"/>
+		<security:intercept-url pattern="/cliente*.to" access="hasRole('ROLE_USER')"/>
+		<security:intercept-url pattern="/cliente*.do" access="hasRole('ROLE_USER')"/>
+		<security:intercept-url pattern="/cliente*.jsp" access="hasRole('ROLE_USER')"/>
+		<security:intercept-url pattern="/admin*.to" access="hasRole('ROLE_ADMIN')"/>
+		<security:intercept-url pattern="/admin*.do" access="hasRole('ROLE_ADMIN')"/>
+		<security:intercept-url pattern="/admin*.jsp" access="hasRole('ROLE_ADMIN')"/>
+		<security:intercept-url pattern="/admin*/**" access="hasRole('ROLE_ADMIN')"/>
+		<security:intercept-url pattern="/informes/**" access="hasRole('ROLE_ADMIN')"/>
+		<security:intercept-url pattern="/sensor/**" method="GET" access="hasAnyRole('ROLE_ADMIN','ROLE_USER')"/>
+		<security:intercept-url pattern="/sensor/**" method="POST" access="hasAnyRole('ROLE_ADMIN','ROLE_USER')"/>
+		<security:intercept-url pattern="/sensor/**" method="DELETE" access="hasAnyRole('ROLE_ADMIN','ROLE_USER')"/>
+		<security:intercept-url pattern="/alarma/**" method="GET" access="isAuthenticated()"/>
+		<security:intercept-url pattern="/alarmas/**" method="GET" access="hasAnyRole('ROLE_ADMIN','ROLE_USER')"/>
+		<security:intercept-url pattern="/datos/cliente/**" method="GET" access="hasRole('ROLE_ADMIN')"/>
+		<security:intercept-url pattern="/**" access="denyAll"/>
+		<security:access-denied-handler error-page="/error.jsp?status=403" />
+		<!-- Mecanismo de autenticación -->
+		<!-- <security:http-basic/> -->
+		<security:form-login login-page="/login.jsp" default-target-url="/login.do" always-use-default-target="true" authentication-failure-url="/login.jsp?error"/>
+		<!--  <security:session-management invalid-session-url="/login.jsp" session-fixation-protection="migrateSession">
+		<security:concurrency-control expired-url="error.jsp" max-sessions="1"/></security:session-management> -->
+		<security:logout invalidate-session="true" delete-cookies="JSESSIONID" logout-success-url="/" logout-url="/j_spring_security_logout" />
+		<security:csrf disabled="true"/>
+	</security:http>
+	<security:authentication-manager>
+		<security:authentication-provider>
+		<security:password-encoder hash="bcrypt"/>
+		<!-- Opción 1. Usuarios en el propio archivo user1	{noop}user1 md5 24c9e15e52afc47c225b757e7bee1f9d 
+		{noop}user2 user2 = 7e58d63b60197ceb55a1c487989a3720
+		-->
+<!--
+		<security:user-service>
+				<security:user name="user1" password="{noop}user1" authorities="ROLE_USER"/>
+				<security:user name="user2" password="{noop}user2" authorities="ROLE_USER"/>
+				<security:user name="user3" password="{noop}user3" authorities="ROLE_USER"/>
+				<security:user name="admin" password="{noop}admin" authorities="ROLE_ADMIN"/>
+			</security:user-service>
+				-->
+		<!-- Opción 2. Usuarios en archivo de tipo properties -->
+				<!-- <security:user-service properties="/WEB-INF/usuarios.properties"/>
+			 -->
+		<!-- Opción 3. Usuarios en una base de datos -->
+					 <security:jdbc-user-service data-source-ref="dataServer"
+						users-by-username-query="select usuario as user, password as pwd, habilitado as enabled from usuarios where usuario=?"
+						authorities-by-username-query="select usuario as user, rol as auth From usuarios where usuario=?"/>
+  						
+		<!-- Opción 4. Usuarios en LDAP -->
+				<!-- <security:ldap-user-service server-ref="sldap"/>
+-->						
+				
+		</security:authentication-provider>
+	
+	</security:authentication-manager>
+	<!-- <security:ldap-server id="sldap" url="ldap://localhost:339" manager-dn="admin" manager-password="admin"/>
+ ref="encoder"	<bean id="encoder"
+  class="org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder">
+</bean>
+	 -->
+</beans>
